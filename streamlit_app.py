@@ -82,7 +82,7 @@ try:
     
     # ------------------ DYNAMIC PORTABLE AC CALCULATOR ------------------
     if not know_code and selected_type == "Portable AC":
-        st.subheader("🧮 Interactive Sizing Calculator (Slide 4)")
+        st.subheader("🧮 Interactive Sizing Calculator")
         with st.container():
             st.markdown("<div class='calc-container'>", unsafe_allow_html=True)
             col1, col2, col3 = st.columns(3)
