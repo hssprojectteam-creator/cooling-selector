@@ -23,15 +23,11 @@ st.markdown(f"""
     footer {{ visibility: hidden !important; }}
     .brand-header {{ color: {BRAND_COLOR}; font-weight: bold; margin-bottom: 0px; }}
     div.stButton > button:first-child {{ background-color: {BRAND_COLOR}; color: white; border-radius: 5px; }}
-    .calc-container {{ background-color: #f8f9fa; padding: 20px; border-left: 5px solid {BRAND_COLOR}; border-radius: 4px; margin-bottom: 20px; }}
-    .calc-result {{ font-size: 20px; font-weight: bold; color: {BRAND_COLOR}; }}
     </style>
     """, unsafe_allow_html=True)
 
 @st.cache_data(ttl=600)
 def load_cooling_data():
-    # CHANGED: Now references the new 'CoolingData.xlsx' workbook name
-    # Reads the first sheet by default. Adjust sheet_name if it is explicitly named.
     try:
         df = pd.read_excel("CoolingData.xlsx", sheet_name="CoolingData")
     except Exception:
@@ -63,7 +59,6 @@ try:
         min_room = int(df["Target Room Size (m2)"].min()) if not df.empty else 10
         max_room = int(df["Target Room Size (m2)"].max()) if not df.empty else 150
         
-        # This slider is active for other types, but overridden if Portable AC is chosen
         target_size = st.sidebar.slider("Minimum Room Size Capacity (m²)", min_value=min_room, max_value=max_room, step=5, value=min_room)
         search_by_criteria = True
 
@@ -83,46 +78,50 @@ try:
     # ------------------ DYNAMIC PORTABLE AC CALCULATOR ------------------
     if not know_code and selected_type == "Portable AC":
         st.subheader("🧮 Interactive Sizing Calculator")
-        with st.container():
-            st.markdown("<div class='calc-container'>", unsafe_allow_html=True)
-            col1, col2, col3 = st.columns(3)
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            r_length = st.number_input("Room Length (m)", min_value=1.0, max_value=30.0, value=7.0, step=0.5)
+        with col2:
+            r_width = st.number_input("Room Width (m)", min_value=1.0, max_value=30.0, value=6.0, step=0.5)
+        with col3:
+            r_height = st.number_input("Ceiling Height (m)", min_value=2.0, max_value=6.0, value=2.5, step=0.1)
             
-            with col1:
-                r_length = st.number_input("Room Length (m)", min_value=1.0, max_value=30.0, value=5.0, step=0.5)
-            with col2:
-                r_width = st.number_input("Room Width (m)", min_value=1.0, max_value=30.0, value=4.0, step=0.5)
-            with col3:
-                r_height = st.number_input("Ceiling Height (m)", min_value=2.0, max_value=6.0, value=2.5, step=0.1)
-                
-            room_gain = st.select_slider(
-                "Room Sun Exposure / Heat Load Level",
-                options=["Low (Good insulation, low glass)", "Medium (Average windows/sun light)", "High (High glass, south facing, hot equipment)"]
-            )
+        room_gain = st.select_slider(
+            "Room Sun Exposure / Heat Load Level",
+            options=["Low (Good insulation, low glass)", "Medium (Average windows/sun light)", "High (High glass, south facing, hot equipment)"],
+            value="Medium (Average windows/sun light)"
+        )
+        
+        # Run Sizing Math
+        calculated_area = r_length * r_width
+        calculated_volume = calculated_area * r_height
+        
+        if "Low" in room_gain:
+            factor = 35
+        elif "Medium" in room_gain:
+            factor = 40
+        else:
+            factor = 50
             
-            calculated_area = r_length * r_width
-            calculated_volume = calculated_area * r_height
+        required_watts = calculated_volume * factor
+        required_kw = required_watts / 1000.0
+        required_btu = required_kw * 3412.142
+        
+        # Override data filters with calculated area metrics
+        override_active_area = calculated_area
+        
+        # CLEANED UP SUMMARY INTERFACE: Replaced the hidden HTML container block with native crisp columns
+        stat_col1, stat_col2, stat_col3 = st.columns(3)
+        with stat_col1:
+            st.metric(label="Calculated Floor Area", value=f"{calculated_area:.1f} m²")
+        with stat_col2:
+            st.metric(label="Required Cooling Output (kW)", value=f"{required_kw:.2f} kW")
+        with stat_col3:
+            st.metric(label="Required Cooling Output (BTU)", value=f"{required_btu:,.0f} BTU")
             
-            if "Low" in room_gain:
-                factor = 35
-            elif "Medium" in room_gain:
-                factor = 40
-            else:
-                factor = 50
-                
-            required_watts = calculated_volume * factor
-            required_kw = required_watts / 1000.0
-            required_btu = required_kw * 3412.142
-            
-            # CHANGED: Assign the calculator area to override the manual slider parameter
-            override_active_area = calculated_area
-            
-            st.markdown(f"""
-            <p style='margin-top:10px;'>Calculated Room Floor Area: <b>{calculated_area:.1f} m²</b> | Room Volume: <b>{calculated_volume:.1f} m³</b></p>
-            <p class='calc-result'>Estimated Target Requirement: {required_kw:.2f} kW ({required_btu:,.0f} BTU)</p>
-            <p style='font-size:12px; color:#269D84; font-style:italic; font-weight:bold;'>💡 Notice: Catalogue listings below are now filtered automatically based on this {calculated_area:.1f} m² output calculation.</p>
-            </div>
-            """, unsafe_allow_html=True)
-            st.markdown("---")
+        st.caption(f"💡 Notice: Catalogue listings below have been automatically filtered to match or exceed your calculated **{calculated_area:.1f} m²** space footprint.")
+        st.markdown("---")
 
     # ------------------ 4. FILTERING & SEARCH LOGIC ------------------
     filtered_df = df.copy()
@@ -136,7 +135,6 @@ try:
         if selected_type != "All":
             filtered_df = filtered_df[filtered_df["Equipment Type"] == selected_type]
             
-        # CHANGED: Apply calculator size criteria filter if active, otherwise fallback to sidebar slider node
         if override_active_area is not None:
             filtered_df = filtered_df[filtered_df["Target Room Size (m2)"] >= override_active_area]
         else:
