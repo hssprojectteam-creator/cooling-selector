@@ -10,13 +10,14 @@ BRAND_COLOR = "#269D84"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SLIDES_DIR = os.path.join(BASE_DIR, "slides")
 
+# Safe default layout setup
 st.set_page_config(
     page_title=f"{COMPANY_NAME} | Climate Control Selector", 
     page_icon="❄️", 
     layout="wide"
 )
 
-# Clean, safe styling block that leaves the native sidebar toggle controls completely alone
+# Safe styling block: Hides ONLY the developer tools, leaving structural headers untouched
 st.markdown(f"""
     <style>
     div[data-testid="stToolbar"] {{ display: none !important; }}
@@ -165,8 +166,7 @@ try:
         if know_code and not search_code.strip():
             st.info("Please enter a valid HSS Product Code in the sidebar search box.")
         else:
-            st.warning("No specific solutions match your current area size inputs. Try lowering your room criteria values.")
+            st.warning("No specific solutions match your current area size inputs. Try broadening your height or power type.")
 
 except Exception as e:
     st.error(f"Error loading application data loop blocks. Details: {e}")
-
