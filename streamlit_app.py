@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import base64
 import re
 
 # ------------------ 1. BRANDING & PAGE CONFIG ------------------
@@ -8,32 +9,44 @@ COMPANY_NAME = "HSS ProService Marketplace"
 BRAND_COLOR = "#269D84"  
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SLIDES_DIR = os.path.join(BASE_DIR, "slides")
 
 st.set_page_config(
     page_title=f"{COMPANY_NAME} | Climate Control Selector", 
     page_icon="❄️", 
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="auto"  # Restores default collapsable sidebar behavior
 )
 
-# Standard layout styling string (completely stops Python variable crashes)
+# Standard layout styling string (completely safe, no variable conflicts)
 css_style = """
     <style>
-    /* Hide dev menus and settings, but KEEP the header sidebar arrow visible */
+    /* Hide dev menus, profile items, and help toolbars */
+    [data-testid="stToolbar"] { display: none !important; }
+    #MainMenu { visibility: hidden !important; }
+    footer { visibility: hidden !important; }
+
+    /* Hide the main header bar canvas line */
     [data-testid="stHeader"] { 
         background-color: transparent !important; 
         box-shadow: none !important;
     }
-    [data-testid="stToolbar"] { display: none !important; }
-    #MainMenu { visibility: hidden !important; }
-    footer { visibility: hidden !important; }
+
+    /* FORCED CORRECTION: Ensure the collapsed control container and its interactive 
+       arrow elements are styled to display clearly over the transparent header layer */
+    [data-testid="collapsedControl"] {
+        display: block !important;
+        visibility: visible !important;
+        background-color: #f8f9fa !important;  /* Light grey badge so the arrow button is highly visible */
+        border-radius: 0 4px 4px 0 !important;
+        box-shadow: 1px 1px 3px rgba(0,0,0,0.1) !important;
+        padding: 5px !important;
+    }
 
     .brand-header { color: #269D84; font-weight: bold; margin-bottom: 0px; }
     div.stButton > button:first-child { background-color: #269D84; color: white; border-radius: 5px; }
     </style>
 """
 st.markdown(css_style, unsafe_allow_html=True)
-
 
 @st.cache_data(ttl=600)
 def load_cooling_data():
