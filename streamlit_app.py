@@ -16,21 +16,24 @@ st.set_page_config(
     layout="wide"
 )
 
-st.markdown(f"""
+# Standard layout styling string (completely stops Python variable crashes)
+css_style = """
     <style>
     /* Hide dev menus and settings, but KEEP the header sidebar arrow visible */
-    [data-testid="stHeader"] {{ 
+    [data-testid="stHeader"] { 
         background-color: transparent !important; 
         box-shadow: none !important;
-    }}
-    [data-testid="stToolbar"] {{ display: none !important; }}
-    #MainMenu {{ visibility: hidden !important; }}
-    footer {{ visibility: hidden !important; }}
+    }
+    [data-testid="stToolbar"] { display: none !important; }
+    #MainMenu { visibility: hidden !important; }
+    footer { visibility: hidden !important; }
 
-    .brand-header {{ color: {BRAND_COLOR}; font-weight: bold; margin-bottom: 0px; }}
-    div.stButton > button:first-child {{ background-color: {BRAND_COLOR}; color: white; border-radius: 5px; }}
+    .brand-header { color: #269D84; font-weight: bold; margin-bottom: 0px; }
+    div.stButton > button:first-child { background-color: #269D84; color: white; border-radius: 5px; }
     </style>
-    """, unsafe_allow_html=True)
+"""
+st.markdown(css_style, unsafe_allow_html=True)
+
 
 @st.cache_data(ttl=600)
 def load_cooling_data():
