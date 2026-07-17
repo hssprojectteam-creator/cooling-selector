@@ -10,18 +10,17 @@ BRAND_COLOR = "#269D84"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SLIDES_DIR = os.path.join(BASE_DIR, "slides")
 
-# Track if the sidebar should be forced open via session state
-if "sidebar_expanded" not in st.session_state:
-    st.session_state.sidebar_expanded = True
+# Check current state settings
+if "sidebar_state" not in st.session_state:
+    st.session_state.sidebar_state = "expanded"
 
 st.set_page_config(
     page_title=f"{COMPANY_NAME} | Climate Control Selector", 
     page_icon="❄️", 
     layout="wide",
-    initial_sidebar_state="expanded" if st.session_state.sidebar_expanded else "collapsed"
+    initial_sidebar_state=st.session_state.sidebar_state
 )
 
-# Cleaned up styling block
 css_style = """
     <style>
     div[data-testid="stToolbar"] { display: none !important; }
@@ -30,7 +29,7 @@ css_style = """
     .brand-header { color: #269D84; font-weight: bold; margin-bottom: 0px; }
     div.stButton > button:first-child { background-color: #269D84; color: white; border-radius: 5px; }
     
-    /* Style our custom floating reopen badge in the corner */
+    /* Absolute anchor mapping for our floating override badge */
     .floating-reopen-btn {
         position: fixed;
         top: 15px;
@@ -41,12 +40,12 @@ css_style = """
 """
 st.markdown(css_style, unsafe_allow_html=True)
 
-# Callback function when our custom reopen button is clicked
+# FIXED ACTION SYSTEM: Forces a server-level rerun to toggle the sidebar layer instantly
 def trigger_sidebar_open():
-    st.session_state.sidebar_expanded = True
+    st.session_state.sidebar_state = "expanded"
+    st.rerun()
 
-# RENDER OUR OWN BESPOKE FLOATING RE-OPEN ARROW IN THE TOP CORNER
-# This button stays on screen and gives users an absolute way to reset the sidebar layer
+# Render our floating toggle control badge panel
 with st.container():
     st.markdown('<div class="floating-reopen-btn">', unsafe_allow_html=True)
     if st.button("➡️ Show Filters", on_click=trigger_sidebar_open, help="Click to open filter menus"):
@@ -91,15 +90,9 @@ try:
 
     def reset_filters():
         st.session_state.know_cooling_code = False
-        st.session_state.sidebar_expanded = True
+        st.session_state.sidebar_state = "expanded"
     # ------------------ 3. MAIN APP INTERFACE ------------------
-    # Added padding shift to text title layout so it doesn't overlap our floating button
-    title_html = f"<h1 class='brand-header' style='padding-left: 140px;'>Powered Access Platform Selector</h1>"
-    
-    # Check if the title text needs to match your Climate Finder layout exactly
-    if "cooling" in str(BASE_DIR).lower() or "climate" in str(BASE_DIR).lower() or "Cooling" in str(df.columns):
-        title_html = f"<h1 class='brand-header' style='padding-left: 145px;'>❄️ Climate Control Solution Finder</h1>"
-        
+    title_html = f"<h1 class='brand-header' style='padding-left: 145px;'>❄️ Climate Control Solution Finder</h1>"
     st.markdown(title_html, unsafe_allow_html=True)
     st.markdown("<p style='padding-left: 145px;'>Filter your site specifications on the left to pull matching product sheets directly from our catalogue presentation.</p>", unsafe_allow_html=True)
     st.markdown("<p style='color: #FF4B4B; font-weight: bold; margin-top: 5px; margin-bottom: 5px; padding-left: 145px;'>Please be aware that exact model available will be dependant on supplier</p>", unsafe_allow_html=True)
