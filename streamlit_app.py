@@ -19,13 +19,13 @@ st.set_page_config(
 st.markdown(f"""
     <style>
     /* Hide dev menus and settings, but KEEP the header sidebar arrow visible */
-    [data-testid="stHeader"] { 
+    [data-testid="stHeader"] {{ 
         background-color: transparent !important; 
         box-shadow: none !important;
-    }
-    [data-testid="stToolbar"] { display: none !important; } /* Hides dev buttons */
-    #MainMenu { visibility: hidden !important; }
-    footer { visibility: hidden !important; }
+    }}
+    [data-testid="stToolbar"] {{ display: none !important; }}
+    #MainMenu {{ visibility: hidden !important; }}
+    footer {{ visibility: hidden !important; }}
 
     .brand-header {{ color: {BRAND_COLOR}; font-weight: bold; margin-bottom: 0px; }}
     div.stButton > button:first-child {{ background-color: {BRAND_COLOR}; color: white; border-radius: 5px; }}
