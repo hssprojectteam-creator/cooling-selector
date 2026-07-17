@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import re
 
 # ------------------ 1. BRANDING & PAGE CONFIG ------------------
 COMPANY_NAME = "HSS ProService Marketplace" 
@@ -27,7 +28,7 @@ st.markdown(f"""
 
 @st.cache_data(ttl=600)
 def load_cooling_data():
-    df = pd.read_excel("CoolingData.xlsx", sheet_name="CoolingData")
+    df = pd.read_excel("data.xlsx", sheet_name="CoolingData")
     return df
 
 try:
@@ -63,8 +64,6 @@ try:
 
     def reset_filters():
         st.session_state.know_cooling_code = False
-        st.session_state.chassis = "All"
-        st.session_state.height = 10
     # ------------------ 3. MAIN APP INTERFACE ------------------
     title_html = f"<h1 class='brand-header'>❄️ Climate Control Solution Finder</h1>"
     st.markdown(title_html, unsafe_allow_html=True)
@@ -75,28 +74,39 @@ try:
     
     # ------------------ 4. DISPLAY MATCHING SLIDES ------------------
     if not filtered_df.empty:
-        # Sort values cleanly so smaller capacity equipment surfaces first
         filtered_df = filtered_df.sort_values(by="Target Room Size (m2)")
-        
         st.subheader(f"We found {len(filtered_df)} matching solutions:")
         
+        # Read the folder directory to see what filenames actually exist on the server
+        actual_folder_files = os.listdir(SLIDES_DIR) if os.path.exists(SLIDES_DIR) else []
+        
         for index, row in filtered_df.iterrows():
-            slide_num = row["Slide Number"]
-            slide_file = f"Slide{slide_num}.png"
-            slide_path = os.path.join(SLIDES_DIR, slide_file)
-                
-            if os.path.exists(slide_path):
-                # Renders the physical PowerPoint slide visually onto the canvas
+            slide_num = str(row["Slide Number"]).strip()
+            
+            # Form clean match pattern (e.g., searches for filename containing "slide5" or "slide05")
+            target_pattern = f"slide{slide_num}"
+            
+            matched_file = None
+            for physical_file in actual_folder_files:
+                # Strip spaces, extensions, and force lowercase to protect against typos
+                clean_physical = re.sub(r'[\s_]', '', physical_file).lower()
+                if target_pattern in clean_physical:
+                    matched_file = physical_file
+                    break
+            
+            if matched_file:
+                slide_path = os.path.join(SLIDES_DIR, matched_file)
                 st.image(slide_path, caption=f"Product Catalogue Info Sheet - Code {row['Product Code']}", width="stretch")
                 st.markdown(" ")
             else:
-                st.warning(f"Catalogue Sheet image '{slide_file}' could not be located inside the slides folder.")
+                st.warning(f"Catalogue Sheet image for Slide {slide_num} could not be located inside the 'slides' folder. Please check file names.")
     else:
         if know_code and not search_code.strip():
             st.info("Please enter a valid HSS Product Code in the sidebar search box.")
         else:
-            st.warning("No specific fleet assets match your exact room parameters. Try lowering your room criteria values.")
+            st.warning("No specific solutions match your current area size inputs. Try lowering your room criteria values.")
 
 except Exception as e:
     st.error(f"Error compiling presentation dashboard asset loops. Details: {e}")
+
 
