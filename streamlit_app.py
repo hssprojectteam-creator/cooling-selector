@@ -13,53 +13,19 @@ SLIDES_DIR = os.path.join(BASE_DIR, "slides")
 st.set_page_config(
     page_title=f"{COMPANY_NAME} | Climate Control Selector", 
     page_icon="❄️", 
-    layout="wide",
-    initial_sidebar_state="auto"
+    layout="wide"
 )
 
-# RESTRUCTURED CSS & JAVASCRIPT ACTION BUTTON:
-# This creates a native web browser button that mimics pressing the 'X' key,
-# instantly forcing the sidebar to slide open or closed without touching Python variables.
-st.markdown("""
-    <script>
-    function toggleStreamlitSidebar() {
-        const ke = new KeyboardEvent("keydown", {
-            bubbles: true, cancelable: true, key: "x", charCode: 120, keyCode: 88
-        });
-        document.dispatchEvent(ke);
-    }
-    </script>
-    
+# Clean, safe styling block that leaves the native sidebar toggle controls completely alone
+st.markdown(f"""
     <style>
-    div[data-testid="stToolbar"] { display: none !important; }
-    #MainMenu { visibility: hidden !important; }
-    footer { visibility: hidden !important; }
-    .brand-header { color: #269D84; font-weight: bold; margin-bottom: 0px; }
-    div.stButton > button:first-child { background-color: #269D84; color: white; border-radius: 5px; }
-    
-    /* Native floating action button fixed to the top left margin */
-    .native-toggle-btn {
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 999999;
-        background-color: #269D84;
-        color: white;
-        border: none;
-        padding: 8px 14px;
-        font-weight: bold;
-        font-size: 14px;
-        border-radius: 4px;
-        cursor: pointer;
-        box-shadow: 1px 1px 5px rgba(0,0,0,0.2);
-    }
-    .native-toggle-btn:hover {
-        background-color: #1e7d69;
-    }
+    div[data-testid="stToolbar"] {{ display: none !important; }}
+    #MainMenu {{ visibility: hidden !important; }}
+    footer {{ visibility: hidden !important; }}
+    .brand-header {{ color: {BRAND_COLOR}; font-weight: bold; margin-bottom: 0px; }}
+    div.stButton > button:first-child {{ background-color: {BRAND_COLOR}; color: white; border-radius: 5px; }}
     </style>
-    
-    <button class="native-toggle-btn" onclick="toggleStreamlitSidebar()">↔️ Toggle Filters</button>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 @st.cache_data(ttl=600)
 def load_cooling_data():
@@ -100,11 +66,11 @@ try:
     def reset_filters():
         st.session_state.know_cooling_code = False
     # ------------------ 3. MAIN APP INTERFACE ------------------
-    # Keeps text shifted slightly right to clear the new floating action button neatly
-    title_html = f"<h1 class='brand-header' style='padding-left: 160px;'>❄️ Climate Control Solution Finder</h1>"
+    title_html = f"<h1 class='brand-header'>❄️ Climate Control Solution Finder</h1>"
     st.markdown(title_html, unsafe_allow_html=True)
-    st.markdown("<p style='padding-left: 160px;'>Filter your site specifications on the left to pull matching product sheets directly from our catalogue presentation.</p>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #FF4B4B; font-weight: bold; margin-top: 5px; margin-bottom: 5px; padding-left: 160px;'>Please be aware that exact model available will be dependant on supplier</p>", unsafe_allow_html=True)
+    st.markdown("Filter your site specifications on the left to pull matching product sheets directly from our catalogue presentation.")
+    
+    st.markdown("<p style='color: #FF4B4B; font-weight: bold; margin-top: 5px; margin-bottom: 5px;'>Please be aware that exact model available will be dependant on supplier</p>", unsafe_allow_html=True)
     st.markdown("---")
     
     override_active_area = None
@@ -202,5 +168,5 @@ try:
             st.warning("No specific solutions match your current area size inputs. Try lowering your room criteria values.")
 
 except Exception as e:
-    st.error(f"Error compiling presentation dashboard asset loops. Details: {e}")
+    st.error(f"Error loading application data loop blocks. Details: {e}")
 
