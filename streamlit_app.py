@@ -18,20 +18,43 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
-# RESTRUCTURED STYLING: We completely removed [data-testid="stHeader"] rules. 
-# The sidebar toggle button will now never vanish or stay locked.
+# RESTORED SIDEBAR TOGGLE: This injects a layered position rule to force the arrow to stay visible
 css_style = """
     <style>
-    /* Safely hide ONLY the developer toolbars and menus while protecting the layout arrow */
+    /* Hide the developer settings tools, but protect the basic layout containers */
     div[data-testid="stToolbar"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
+
+    /* FORCED LAYER INTENSITY OVERRIDE: 
+       This drags the hidden sidebar button to the very top layer of the screen 
+       and anchors it into a highly visible, clickable floating badge panel */
+    div[data-testid="collapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        position: fixed !important;
+        top: 10px !important;
+        left: 10px !important;
+        z-index: 999999 !important; /* Forces the button over everything else */
+        background-color: #f0f2f6 !important; /* Light grey floating button box */
+        border: 1px solid #d1d5db !important;
+        border-radius: 4px !important;
+        padding: 4px 8px !important;
+        box-shadow: 1px 1px 5px rgba(0,0,0,0.15) !important;
+        cursor: pointer !important;
+    }
+
+    /* Force the arrow icon text inside the button to be dark and visible */
+    div[data-testid="collapsedControl"] button {
+        color: #31333F !important;
+    }
 
     .brand-header { color: #269D84; font-weight: bold; margin-bottom: 0px; }
     div.stButton > button:first-child { background-color: #269D84; color: white; border-radius: 5px; }
     </style>
 """
 st.markdown(css_style, unsafe_allow_html=True)
+
 
 @st.cache_data(ttl=600)
 def load_cooling_data():
