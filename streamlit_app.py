@@ -7,54 +7,51 @@ import re
 COMPANY_NAME = "HSS ProService Marketplace" 
 BRAND_COLOR = "#269D84"  
 
-# CRITICAL PATH DEFINITIONS POSITIONED FIRST TO ELIMINATE THE NAMEERROR
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SLIDES_DIR = os.path.join(BASE_DIR, "slides")
+
+# Track if the sidebar should be forced open via session state
+if "sidebar_expanded" not in st.session_state:
+    st.session_state.sidebar_expanded = True
 
 st.set_page_config(
     page_title=f"{COMPANY_NAME} | Climate Control Selector", 
     page_icon="❄️", 
     layout="wide",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="expanded" if st.session_state.sidebar_expanded else "collapsed"
 )
 
-# RESTORED SIDEBAR TOGGLE: This injects a layered position rule to force the arrow to stay visible
+# Cleaned up styling block
 css_style = """
     <style>
-    /* Hide the developer settings tools, but protect the basic layout containers */
     div[data-testid="stToolbar"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
-
-    /* FORCED LAYER INTENSITY OVERRIDE: 
-       This drags the hidden sidebar button to the very top layer of the screen 
-       and anchors it into a highly visible, clickable floating badge panel */
-    div[data-testid="collapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        position: fixed !important;
-        top: 10px !important;
-        left: 10px !important;
-        z-index: 999999 !important; /* Forces the button over everything else */
-        background-color: #f0f2f6 !important; /* Light grey floating button box */
-        border: 1px solid #d1d5db !important;
-        border-radius: 4px !important;
-        padding: 4px 8px !important;
-        box-shadow: 1px 1px 5px rgba(0,0,0,0.15) !important;
-        cursor: pointer !important;
-    }
-
-    /* Force the arrow icon text inside the button to be dark and visible */
-    div[data-testid="collapsedControl"] button {
-        color: #31333F !important;
-    }
-
     .brand-header { color: #269D84; font-weight: bold; margin-bottom: 0px; }
     div.stButton > button:first-child { background-color: #269D84; color: white; border-radius: 5px; }
+    
+    /* Style our custom floating reopen badge in the corner */
+    .floating-reopen-btn {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 99999;
+    }
     </style>
 """
 st.markdown(css_style, unsafe_allow_html=True)
 
+# Callback function when our custom reopen button is clicked
+def trigger_sidebar_open():
+    st.session_state.sidebar_expanded = True
+
+# RENDER OUR OWN BESPOKE FLOATING RE-OPEN ARROW IN THE TOP CORNER
+# This button stays on screen and gives users an absolute way to reset the sidebar layer
+with st.container():
+    st.markdown('<div class="floating-reopen-btn">', unsafe_allow_html=True)
+    if st.button("➡️ Show Filters", on_click=trigger_sidebar_open, help="Click to open filter menus"):
+        pass
+    st.markdown('</div>', unsafe_allow_html=True)
 
 @st.cache_data(ttl=600)
 def load_cooling_data():
@@ -94,12 +91,18 @@ try:
 
     def reset_filters():
         st.session_state.know_cooling_code = False
+        st.session_state.sidebar_expanded = True
     # ------------------ 3. MAIN APP INTERFACE ------------------
-    title_html = f"<h1 class='brand-header'>❄️ Climate Control Solution Finder</h1>"
-    st.markdown(title_html, unsafe_allow_html=True)
-    st.markdown("Filter your site specifications on the left to pull matching product sheets directly from our catalogue presentation.")
+    # Added padding shift to text title layout so it doesn't overlap our floating button
+    title_html = f"<h1 class='brand-header' style='padding-left: 140px;'>Powered Access Platform Selector</h1>"
     
-    st.markdown("<p style='color: #FF4B4B; font-weight: bold; margin-top: 5px; margin-bottom: 5px;'>Please be aware that exact model available will be dependant on supplier</p>", unsafe_allow_html=True)
+    # Check if the title text needs to match your Climate Finder layout exactly
+    if "cooling" in str(BASE_DIR).lower() or "climate" in str(BASE_DIR).lower() or "Cooling" in str(df.columns):
+        title_html = f"<h1 class='brand-header' style='padding-left: 145px;'>❄️ Climate Control Solution Finder</h1>"
+        
+    st.markdown(title_html, unsafe_allow_html=True)
+    st.markdown("<p style='padding-left: 145px;'>Filter your site specifications on the left to pull matching product sheets directly from our catalogue presentation.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #FF4B4B; font-weight: bold; margin-top: 5px; margin-bottom: 5px; padding-left: 145px;'>Please be aware that exact model available will be dependant on supplier</p>", unsafe_allow_html=True)
     st.markdown("---")
     
     override_active_area = None
@@ -198,4 +201,5 @@ try:
 
 except Exception as e:
     st.error(f"Error compiling presentation dashboard asset loops. Details: {e}")
+
 
