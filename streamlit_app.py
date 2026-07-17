@@ -30,7 +30,7 @@ st.markdown(f"""
 
 @st.cache_data(ttl=600)
 def load_cooling_data():
-    df = pd.read_excel("data.xlsx", sheet_name="CoolingData")
+    df = pd.read_excel("CoolingData.xlsx", sheet_name="CoolingData")
     return df
 
 try:
