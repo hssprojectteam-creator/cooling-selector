@@ -1,46 +1,31 @@
 import streamlit as st
 import pandas as pd
 import os
-import base64
 import re
 
 # ------------------ 1. BRANDING & PAGE CONFIG ------------------
 COMPANY_NAME = "HSS ProService Marketplace" 
 BRAND_COLOR = "#269D84"  
 
+# CRITICAL PATH DEFINITIONS POSITIONED FIRST TO ELIMINATE THE NAMEERROR
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SLIDES_DIR = os.path.join(BASE_DIR, "slides")
 
 st.set_page_config(
     page_title=f"{COMPANY_NAME} | Climate Control Selector", 
     page_icon="❄️", 
     layout="wide",
-    initial_sidebar_state="auto"  # Restores default collapsable sidebar behavior
+    initial_sidebar_state="auto"
 )
 
-# Standard layout styling string (completely safe, no variable conflicts)
+# RESTRUCTURED STYLING: We completely removed [data-testid="stHeader"] rules. 
+# The sidebar toggle button will now never vanish or stay locked.
 css_style = """
     <style>
-    /* Hide dev menus, profile items, and help toolbars */
-    [data-testid="stToolbar"] { display: none !important; }
+    /* Safely hide ONLY the developer toolbars and menus while protecting the layout arrow */
+    div[data-testid="stToolbar"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
-
-    /* Hide the main header bar canvas line */
-    [data-testid="stHeader"] { 
-        background-color: transparent !important; 
-        box-shadow: none !important;
-    }
-
-    /* FORCED CORRECTION: Ensure the collapsed control container and its interactive 
-       arrow elements are styled to display clearly over the transparent header layer */
-    [data-testid="collapsedControl"] {
-        display: block !important;
-        visibility: visible !important;
-        background-color: #f8f9fa !important;  /* Light grey badge so the arrow button is highly visible */
-        border-radius: 0 4px 4px 0 !important;
-        box-shadow: 1px 1px 3px rgba(0,0,0,0.1) !important;
-        padding: 5px !important;
-    }
 
     .brand-header { color: #269D84; font-weight: bold; margin-bottom: 0px; }
     div.stButton > button:first-child { background-color: #269D84; color: white; border-radius: 5px; }
@@ -94,7 +79,6 @@ try:
     st.markdown("<p style='color: #FF4B4B; font-weight: bold; margin-top: 5px; margin-bottom: 5px;'>Please be aware that exact model available will be dependant on supplier</p>", unsafe_allow_html=True)
     st.markdown("---")
     
-    # Initialize our filter threshold override tracker
     override_active_area = None
     
     # ------------------ DYNAMIC PORTABLE AC CALCULATOR ------------------
@@ -115,7 +99,6 @@ try:
             value="Medium (Average windows/sun light)"
         )
         
-        # Run Sizing Math
         calculated_area = r_length * r_width
         calculated_volume = calculated_area * r_height
         
@@ -130,10 +113,8 @@ try:
         required_kw = required_watts / 1000.0
         required_btu = required_kw * 3412.142
         
-        # Override data filters with calculated area metrics
         override_active_area = calculated_area
         
-        # CLEANED UP SUMMARY INTERFACE: Replaced the hidden HTML container block with native crisp columns
         stat_col1, stat_col2, stat_col3 = st.columns(3)
         with stat_col1:
             st.metric(label="Calculated Floor Area", value=f"{calculated_area:.1f} m²")
@@ -194,3 +175,4 @@ try:
 
 except Exception as e:
     st.error(f"Error compiling presentation dashboard asset loops. Details: {e}")
+
